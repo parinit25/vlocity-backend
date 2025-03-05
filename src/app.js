@@ -13,16 +13,21 @@ const pollRoutes = require("../routes/poll.routes");
 const app = express();
 const server = createServer(app);
 
+const allowedOrigins = [
+  process.env.REACT_APP_URL,
+  "https://vlocity-ai-task-fgorjxf0z-parinitsingh06-gmailcoms-projects.vercel.app/",
+];
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.REACT_APP_URL,
+    origin: "*",
     credentials: true,
   },
 });
 
 app.use(
   cors({
-    origin: process.env.REACT_APP_URL,
+    origin: "*",
     credentials: true,
   })
 );
@@ -120,9 +125,13 @@ io.on("connection", (socket) => {
   });
 });
 
+app.use("/", (req, res) => {
+  res.send({ secretMessage: "Welcome to Polls API" });
+});
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = { app, io };
+module.exports = app;
