@@ -1,6 +1,5 @@
 const Poll = require("../models/poll.model");
 const User = require("../models/user.model");
-const { io } = require("../src/app"); // Import from socket.js
 
 const createPoll = async (req, res) => {
   try {
@@ -41,27 +40,6 @@ const getPolls = async (req, res) => {
   }
 };
 
-const votePoll = async (req, res) => {
-  try {
-    const { pollId, optionIndex } = req.body;
-
-    const poll = await Poll.findById(pollId);
-    if (!poll) return res.status(404).json({ message: "Poll not found" });
-    const user = await User.findById(req.user.id);
-    if (user.votedPolls.includes(pollId)) {
-      return res.status(400).json({ message: "You have already voted." });
-    }
-    poll.options[optionIndex].votes += 1;
-    await poll.save();
-    user.votedPolls.push(pollId);
-    await user.save();
-    io.emit("pollUpdated", { pollId, options: poll.options });
-    res.status(200).json({ message: "Vote recorded", poll });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
 const getPollDetails = async (req, res) => {
   try {
     const { pollId } = req.params;
@@ -71,46 +49,6 @@ const getPollDetails = async (req, res) => {
     if (!poll) return res.status(404).json({ message: "Poll not found" });
 
     res.status(200).json(poll);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
-const addComment = async (req, res) => {
-  try {
-    const { pollId } = req.params;
-    const { text } = req.body;
-
-    const poll = await Poll.findById(pollId);
-    if (!poll) return res.status(404).json({ message: "Poll not found" });
-
-    const newComment = { text, user: req.user.id, replies: [] };
-    poll.comments.push(newComment);
-    await poll.save();
-    io.emit("commentAdded", { pollId, comment: newComment });
-
-    res.status(201).json({ message: "Comment added", poll });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
-const replyToComment = async (req, res) => {
-  try {
-    const { pollId, commentId } = req.params;
-    const { text } = req.body;
-
-    const poll = await Poll.findById(pollId);
-    if (!poll) return res.status(404).json({ message: "Poll not found" });
-
-    const comment = poll.comments.id(commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
-
-    const newReply = { text, user: req.user.id };
-    comment.replies.push(newReply);
-    await poll.save();
-    io.emit("pollUpdated", { pollId, updatedPoll: poll });
-    res.status(201).json({ message: "Reply added successfully", poll });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -137,10 +75,7 @@ const getUserVotedPolls = async (req, res) => {
 module.exports = {
   createPoll,
   getPolls,
-  votePoll,
   getPollDetails,
-  addComment,
-  replyToComment,
   getUserPolls,
   getUserVotedPolls,
 };

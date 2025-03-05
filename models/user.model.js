@@ -32,19 +32,19 @@ const userSchema = new mongoose.Schema(
     createdPolls: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Poll", // Reference to the Poll model
+        ref: "Poll",
       },
     ],
     votedPolls: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Poll", // Reference to the Poll model
+        ref: "Poll",
       },
     ],
     comments: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment", // Reference to the Comment model
+        ref: "Comment",
       },
     ],
   },

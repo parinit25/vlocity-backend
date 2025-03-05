@@ -103,23 +103,17 @@ const refreshToken = async (req, res) => {
         .status(403)
         .json({ message: "Access denied, refresh token missing" });
     }
-
-    // Verify JWT Token first
     let decoded;
     try {
       decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     } catch (err) {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
-
-    // Query the database using the refresh token directly
     const user = await User.findOne({ refreshToken });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
-
-    // Generate new access token
     const accessToken = generateAccessToken(user);
 
     res.status(200).json({ accessToken });
